@@ -1,10 +1,6 @@
 package com.emergency.userservice.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -15,10 +11,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "users", schema = "users")
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class User {
 
     @Id
@@ -38,7 +30,6 @@ public class User {
     private String phoneNumber;
 
     @Column(name = "is_active", nullable = false)
-    @Builder.Default
     private Boolean isActive = true;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -48,7 +39,6 @@ public class User {
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    @Builder.Default
     private Set<Role> roles = new HashSet<>();
 
     @CreationTimestamp
@@ -58,4 +48,28 @@ public class User {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPasswordHash() { return passwordHash; }
+    public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+
+    public String getFullName() { return fullName; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+
+    public Set<Role> getRoles() { return roles; }
+    public void setRoles(Set<Role> roles) { this.roles = roles; }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public Instant getUpdatedAt() { return updatedAt; }
 }

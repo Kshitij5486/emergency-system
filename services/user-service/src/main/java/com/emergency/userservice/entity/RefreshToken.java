@@ -1,10 +1,6 @@
 package com.emergency.userservice.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -14,10 +10,6 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "refresh_tokens", schema = "users")
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class RefreshToken {
 
     @Id
@@ -35,7 +27,6 @@ public class RefreshToken {
     private Instant expiresAt;
 
     @Column(nullable = false)
-    @Builder.Default
     private Boolean revoked = false;
 
     @CreationTimestamp
@@ -45,4 +36,24 @@ public class RefreshToken {
     @Column(name = "ip_address")
     @JdbcTypeCode(SqlTypes.INET)
     private String ipAddress;
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+
+    public String getTokenHash() { return tokenHash; }
+    public void setTokenHash(String tokenHash) { this.tokenHash = tokenHash; }
+
+    public Instant getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
+
+    public Boolean getRevoked() { return revoked; }
+    public void setRevoked(Boolean revoked) { this.revoked = revoked; }
+
+    public Instant getCreatedAt() { return createdAt; }
+
+    public String getIpAddress() { return ipAddress; }
+    public void setIpAddress(String ipAddress) { this.ipAddress = ipAddress; }
 }
