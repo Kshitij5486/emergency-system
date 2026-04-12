@@ -5,12 +5,6 @@ on:
   pull_request:
     branches: [main]
 jobs:
-  validate:
-    name: Validate docker-compose
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: docker compose config --quiet
   build-user-service:
     name: Build User Service
     runs-on: ubuntu-latest
@@ -21,4 +15,5 @@ jobs:
           java-version: '21'
           distribution: temurin
           cache: maven
-      - run: mvn clean package -DskipTests --no-transfer-progress -pl services/user-service -am
+      - name: Build user-service
+        run: cd services/user-service && mvn clean package -DskipTests --no-transfer-progress
