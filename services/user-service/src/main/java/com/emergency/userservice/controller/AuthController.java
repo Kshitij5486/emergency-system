@@ -1,5 +1,7 @@
 package com.emergency.userservice.controller;
 
+import com.emergency.userservice.dto.LoginRequest;
+import com.emergency.userservice.dto.LoginResponse;
 import com.emergency.userservice.dto.RegisterRequest;
 import com.emergency.userservice.dto.RegisterResponse;
 import com.emergency.userservice.service.UserService;
@@ -23,7 +25,11 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<RegisterResponse> register(@Valid @RequestBody RegisterRequest request) {
-        RegisterResponse response = userService.register(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(userService.login(request));
     }
 }
