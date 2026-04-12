@@ -1,0 +1,15 @@
+﻿.env
+*.env.local
+target/
+*.class
+*.jar
+__pycache__/
+.venv/
+*.pkl
+node_modules/
+dist/
+.idea/
+*.iml
+.vscode/
+.DS_Store
+*.log

@@ -1,0 +1,14 @@
+﻿server:
+  port: 8086
+spring:
+  application:
+    name: notification-service
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+  from-number: ${TWILIO_FROM_NUMBER:}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

@@ -1,0 +1,31 @@
+﻿server:
+  port: 8081
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/emergency_db}
+    username: ${SPRING_DATASOURCE_USERNAME:emergency_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:emergency_pass}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: users
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    schemas: users
+    locations: classpath:db/migration
+jwt:
+  secret: ${JWT_SECRET:dev-secret-replace-in-production}
+  access-token-expiry-ms: 3600000
+  refresh-token-expiry-days: 30
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

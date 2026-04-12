@@ -1,0 +1,31 @@
+﻿server:
+  port: 8083
+spring:
+  application:
+    name: dispatch-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/emergency_db}
+    username: ${SPRING_DATASOURCE_USERNAME:emergency_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:emergency_pass}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: dispatch
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    schemas: dispatch
+    locations: classpath:db/migration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

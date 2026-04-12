@@ -1,0 +1,14 @@
+﻿server:
+  port: 8084
+spring:
+  application:
+    name: tracking-service
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
