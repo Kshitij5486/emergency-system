@@ -1,33 +1,39 @@
-﻿server:
+server:
   port: 8080
+
 spring:
   application:
     name: api-gateway
   cloud:
     gateway:
       routes:
-        - id: user-service
-          uri: http://user-service:8081
+        - id: user-service-auth
+          uri: http://localhost:8081
           predicates:
-            - Path=/api/auth/**,/api/users/**
+            - Path=/api/auth/**
+        - id: user-service-users
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/users/**
+        - id: user-service-admin
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/admin/**
         - id: emergency-service
-          uri: http://emergency-service:8082
+          uri: http://localhost:8082
           predicates:
             - Path=/api/incidents/**
-        - id: dispatch-service
-          uri: http://dispatch-service:8083
-          predicates:
-            - Path=/api/dispatch/**,/api/responders/**
-        - id: tracking-service
-          uri: http://tracking-service:8084
-          predicates:
-            - Path=/ws/**,/api/tracking/**
-        - id: ai-service
-          uri: http://ai-service:8085
-          predicates:
-            - Path=/api/ai/**
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+  main:
+    web-application-type: reactive
+
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,info
+
+logging:
+  level:
+    org.springframework.cloud.gateway: INFO
