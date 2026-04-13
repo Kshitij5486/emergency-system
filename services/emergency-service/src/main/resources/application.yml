@@ -1,14 +1,18 @@
-﻿server:
+server:
   port: 8082
+
 spring:
   application:
     name: emergency-service
+
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/emergency_db}
     username: ${SPRING_DATASOURCE_USERNAME:emergency_user}
     password: ${SPRING_DATASOURCE_PASSWORD:emergency_pass}
     hikari:
       maximum-pool-size: 15
+      pool-name: EmergencyServicePool
+
   jpa:
     hibernate:
       ddl-auto: validate
@@ -16,12 +20,32 @@ spring:
       hibernate:
         default_schema: incidents
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
   flyway:
     enabled: true
     schemas: incidents
     locations: classpath:db/migration
+    validate-on-migrate: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      acks: all
+      retries: 3
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  security:
+    user:
+      name: admin
+      password: admin
+
 management:
   endpoints:
     web:
       exposure:
         include: health,info,metrics
+
+logging:
+  level:
+    com.emergency: DEBUG
