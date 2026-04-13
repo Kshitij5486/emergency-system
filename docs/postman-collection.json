@@ -1,0 +1,139 @@
+{
+  "info": {
+    "name": "Emergency Response System API",
+    "description": "Complete API collection for AI-Powered Distributed Emergency Assistance System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080"},
+    {"key": "token", "value": ""},
+    {"key": "adminToken", "value": ""},
+    {"key": "userId", "value": ""},
+    {"key": "incidentId", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register Citizen",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));","pm.test('Has ID', () => pm.expect(pm.response.json().id).to.exist);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type","value": "application/json"}],
+            "body": {"mode": "raw","raw": "{\"fullName\":\"Test Citizen\",\"email\":\"citizen{{$timestamp}}@test.com\",\"password\":\"password123\"}"},
+            "url": {"raw": "{{baseUrl}}/api/auth/register","host": ["{{baseUrl}}"],"path": ["api","auth","register"]}
+          }
+        },
+        {
+          "name": "Login Citizen",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","const r = pm.response.json();","pm.collectionVariables.set('token', r.accessToken);","pm.collectionVariables.set('userId', r.userId);","pm.test('Has token', () => pm.expect(r.accessToken).to.exist);"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type","value": "application/json"}],
+            "body": {"mode": "raw","raw": "{\"email\":\"gateway@test.com\",\"password\":\"test1234\"}"},
+            "url": {"raw": "{{baseUrl}}/api/auth/login","host": ["{{baseUrl}}"],"path": ["api","auth","login"]}
+          }
+        },
+        {
+          "name": "Login Wrong Password",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 401', () => pm.response.to.have.status(401));"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type","value": "application/json"}],
+            "body": {"mode": "raw","raw": "{\"email\":\"gateway@test.com\",\"password\":\"wrongpassword\"}"},
+            "url": {"raw": "{{baseUrl}}/api/auth/login","host": ["{{baseUrl}}"],"path": ["api","auth","login"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","pm.test('Has userId', () => pm.expect(pm.response.json().userId).to.exist);"]}}],
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization","value": "Bearer {{token}}"}],
+            "url": {"raw": "{{baseUrl}}/api/users/me","host": ["{{baseUrl}}"],"path": ["api","users","me"]}
+          }
+        },
+        {
+          "name": "Get Profile No Token",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 401', () => pm.response.to.have.status(401));"]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{baseUrl}}/api/users/me","host": ["{{baseUrl}}"],"path": ["api","users","me"]}
+          }
+        }
+      ]
+    },
+    {
+      "name": "Incidents",
+      "item": [
+        {
+          "name": "Report Incident",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 201', () => pm.response.to.have.status(201));","const r = pm.response.json();","pm.collectionVariables.set('incidentId', r.id);","pm.test('Status is REPORTED', () => pm.expect(r.status).to.equal('REPORTED'));"]}}],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type","value": "application/json"},{"key": "X-User-Id","value": "{{userId}}"}],
+            "body": {"mode": "raw","raw": "{\"type\":\"MEDICAL\",\"severity\":4,\"description\":\"Person collapsed\",\"latitude\":19.0760,\"longitude\":72.8777,\"address\":\"Bandra West\",\"city\":\"mumbai\"}"},
+            "url": {"raw": "{{baseUrl}}/api/incidents","host": ["{{baseUrl}}"],"path": ["api","incidents"]}
+          }
+        },
+        {
+          "name": "Move to QUEUED",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","pm.test('QUEUED', () => pm.expect(pm.response.json().status).to.equal('QUEUED'));"]}}],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type","value": "application/json"},{"key": "X-User-Id","value": "{{userId}}"}],
+            "body": {"mode": "raw","raw": "{\"status\":\"QUEUED\",\"note\":\"Added to queue\"}"},
+            "url": {"raw": "{{baseUrl}}/api/incidents/{{incidentId}}/status","host": ["{{baseUrl}}"],"path": ["api","incidents","{{incidentId}}","status"]}
+          }
+        },
+        {
+          "name": "Move to DISPATCHED",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","pm.test('DISPATCHED', () => pm.expect(pm.response.json().status).to.equal('DISPATCHED'));"]}}],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type","value": "application/json"},{"key": "X-User-Id","value": "{{userId}}"}],
+            "body": {"mode": "raw","raw": "{\"status\":\"DISPATCHED\",\"note\":\"Responder dispatched\"}"},
+            "url": {"raw": "{{baseUrl}}/api/incidents/{{incidentId}}/status","host": ["{{baseUrl}}"],"path": ["api","incidents","{{incidentId}}","status"]}
+          }
+        },
+        {
+          "name": "Move to IN_PROGRESS",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","pm.test('IN_PROGRESS', () => pm.expect(pm.response.json().status).to.equal('IN_PROGRESS'));"]}}],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type","value": "application/json"},{"key": "X-User-Id","value": "{{userId}}"}],
+            "body": {"mode": "raw","raw": "{\"status\":\"IN_PROGRESS\",\"note\":\"On scene\"}"},
+            "url": {"raw": "{{baseUrl}}/api/incidents/{{incidentId}}/status","host": ["{{baseUrl}}"],"path": ["api","incidents","{{incidentId}}","status"]}
+          }
+        },
+        {
+          "name": "Move to RESOLVED",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 200', () => pm.response.to.have.status(200));","pm.test('RESOLVED', () => pm.expect(pm.response.json().status).to.equal('RESOLVED'));"]}}],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type","value": "application/json"},{"key": "X-User-Id","value": "{{userId}}"}],
+            "body": {"mode": "raw","raw": "{\"status\":\"RESOLVED\",\"note\":\"Resolved\"}"},
+            "url": {"raw": "{{baseUrl}}/api/incidents/{{incidentId}}/status","host": ["{{baseUrl}}"],"path": ["api","incidents","{{incidentId}}","status"]}
+          }
+        },
+        {
+          "name": "Invalid Transition expect 409",
+          "event": [{"listen": "test","script": {"exec": ["pm.test('Status 409', () => pm.response.to.have.status(409));"]}}],
+          "request": {
+            "method": "PATCH",
+            "header": [{"key": "Content-Type","value": "application/json"},{"key": "X-User-Id","value": "{{userId}}"}],
+            "body": {"mode": "raw","raw": "{\"status\":\"QUEUED\",\"note\":\"try go back\"}"},
+            "url": {"raw": "{{baseUrl}}/api/incidents/{{incidentId}}/status","host": ["{{baseUrl}}"],"path": ["api","incidents","{{incidentId}}","status"]}
+          }
+        }
+      ]
+    }
+  ]
+}
