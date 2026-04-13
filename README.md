@@ -1,260 +1,170 @@
 # AI-Powered Distributed Emergency Assistance System
 
-A production-grade emergency response platform built using a microservices architecture. This project demonstrates an event-driven, scalable, and fault-tolerant backend system for real-time emergency dispatch, AI-based prioritization, and live responder tracking â€” all containerized with Docker.
-
 > Think: Uber + 112 Emergency + AI Prioritization
 
----
+A production-grade distributed system for real-time emergency response.
+Built with microservices architecture, event-driven design, and AI-powered prioritization.
 
-## Architecture Overview
-
-The system is composed of independent microservices that communicate through Apache Kafka. All external requests are routed through a Spring Cloud API Gateway.
-
-```
-+---------------------------------------+
-|         API Gateway  :8080            |
-|     Spring Cloud Gateway 4.1.4        |
-+----------+------------+---------------+
-           |            |               |
-    +------+------+ +---+--------+ +---+--------+
-    | User Service| | Emergency  | | Tracking   |
-    |    :8081    | |  Service   | | Service    |
-    |  JWT + Auth | |   :8082    | | :8084 WS   |
-    +-------------+ +-----+------+ +------------+
-                          |
-                          | Kafka
-          +---------------+--------------------+
-          |          Apache Kafka 3.7.1         |
-          |  emergency-events, dispatch-updates  |
-          +-----------+----------------+--------+
-                      |                |
-          +-----------+----+  +--------+-----------------+
-          | Dispatch       |  | Notification             |
-          | Service :8083  |  | Service  :8086           |
-          |                |  | SMS via Twilio           |
-          +-------+--------+  +--------------------------+
-                  |
-                  | HTTP
-          +-------+----------------------------------+
-          |    AI Service  :8085  (Python)           |
-          |  Priority model - Fake detection         |
-          |  Smart routing via OSRM                  |
-          +------------------------------------------+
-
-  Data:     PostgreSQL 16.3  +  Redis 7.4
-  Frontend: React 18 + Leaflet + STOMP WebSockets
-  DevOps:   Docker -> Kubernetes (Sprint 5)
-```
-
-The main services are:
-
-- **API Gateway**: Single entry point for all client requests. Handles routing and cross-cutting concerns.
-- **User Service**: Manages authentication, JWT issuance, and user profiles.
-- **Emergency Service**: Handles incident creation, status tracking, and audit history.
-- **Dispatch Service**: Assigns the nearest available responder using AI scores and geolocation.
-- **Tracking Service**: Streams live GPS updates to the frontend via WebSockets.
-- **Notification Service**: Sends SMS alerts to citizens and responders via Twilio.
-- **AI Service**: Scores incident priority, detects fake alerts, and computes optimal routing.
+![CI](https://github.com/Kshitij5486/emergency-system/actions/workflows/ci.yml/badge.svg)
 
 ---
 
-## Features
+## Live Demo Flow
 
-- One-tap SOS button for instant emergency reporting.
-- AI-based priority scoring (1-5) on every incoming incident.
-- Fake alert detection using a trained ML model.
-- Nearest-responder dispatch via OSRM self-hosted routing.
-- Live GPS tracking via WebSockets for both citizen and responder.
-- Full incident status timeline (reported -> dispatched -> resolved).
-- SMS notifications via Twilio on dispatch and resolution.
-- Role-based access: Citizen, Responder, and Admin dashboards.
-- Centralized API documentation via SpringDoc OpenAPI through the gateway.
+```
+Citizen reports emergency
+       |
+       v
+  API Gateway (8080) -- JWT validation
+       |
+       +---> User Service (8081)     -- Auth, JWT, RBAC
+       |
+       +---> Emergency Service (8082) -- Incidents, State Machine
+       |
+       +---> [Sprint 2] Dispatch Service (8083) -- AI routing
+       |
+       +---> [Sprint 3] Tracking Service (8084) -- WebSockets
+```
 
 ---
 
 ## Tech Stack
 
-| Category      | Technology                       | Version         |
-|---------------|----------------------------------|-----------------|
-| Language      | Java                             | 21 LTS          |
-| Framework     | Spring Boot                      | 3.3.2           |
-| Auth          | Spring Security + jjwt           | 0.12.6          |
-| Gateway       | Spring Cloud Gateway             | 4.1.4           |
-| Messaging     | Apache Kafka                     | 3.7.1           |
-| Database      | PostgreSQL                       | 16.3            |
-| Migrations    | Flyway                           | 10.15.0         |
-| Cache         | Redis                            | 7.4             |
-| Frontend      | React + Vite                     | 18.3.1 / 5.3.4  |
-| Maps          | Leaflet + React-Leaflet          | 1.9.4 / 4.2.1   |
-| AI/ML         | Python + FastAPI + scikit-learn  | 3.12.4          |
-| Routing       | OSRM (self-hosted)               | 5.27.1          |
-| CI/CD         | GitHub Actions                   | latest          |
-| Containers    | Docker + Compose                 | 27.x            |
-| Orchestration | Kubernetes                       | 1.31 (Sprint 5) |
+| Layer | Technology |
+|-------|-----------|
+| Backend | Java 21, Spring Boot 3.3.2 |
+| API Gateway | Spring Cloud Gateway |
+| Database | PostgreSQL 16.3 (6 schemas) |
+| Cache | Redis 7.4 |
+| Migrations | Flyway 10.15 |
+| Auth | JWT (jjwt 0.12.6), BCrypt |
+| Messaging | Apache Kafka (Sprint 2) |
+| AI | Python + ML models (Sprint 4) |
+| Frontend | React + WebSockets (Sprint 3) |
+| DevOps | Docker, GitHub Actions CI |
+
+---
+
+## Microservices
+
+| Service | Port | Responsibility |
+|---------|------|---------------|
+| api-gateway | 8080 | JWT validation, routing |
+| user-service | 8081 | Auth, registration, RBAC |
+| emergency-service | 8082 | Incident reporting, state machine |
+| dispatch-service | 8083 | Responder assignment (Sprint 2) |
+| tracking-service | 8084 | Real-time GPS (Sprint 3) |
+| notification-service | 8086 | SMS/push alerts (Sprint 2) |
+
+---
+
+## Key Features (Sprint 1 Complete)
+
+- **JWT Authentication** — stateless, token stored in memory not localStorage
+- **Role-Based Access Control** — CITIZEN, RESPONDER, ADMIN roles
+- **Incident State Machine** — enforced transitions: REPORTED → QUEUED → DISPATCHED → IN_PROGRESS → RESOLVED
+- **Status History** — append-only audit log of every status change
+- **API Gateway** — single entry point, JWT validated once at edge
+- **6 Postgres Schemas** — one per service, zero cross-schema queries
+- **Flyway Migrations** — versioned, checksummed, auto-applied on startup
 
 ---
 
 ## Getting Started
 
 ### Prerequisites
+- Java 21+
+- Maven 3.9+
+- Docker Desktop
 
-- **Git**
-- **Docker** and **Docker Compose** (v2+)
-- **JDK 21** or later
-- **Maven**
-
-### Installation and Startup
-
-1. Clone the repository:
+### Run locally
 
 ```bash
-git clone https://github.com/Kshitij5486/emergency-system.git
-cd emergency-system
+# 1. Start infrastructure
+docker compose up -d postgres redis
+
+# 2. Start services (separate terminals)
+cd services/user-service && mvn spring-boot:run
+cd services/emergency-service && mvn spring-boot:run
+cd services/api-gateway && mvn spring-boot:run
 ```
 
-2. Set up environment variables:
+### Run integration tests
 
-```bash
-cp .env.example .env
+```powershell
+.\docs\integration-test.ps1
+# Expected: Passed: 7, Failed: 0
 ```
-
-3. Start the infrastructure containers:
-
-```bash
-make up
-```
-
-4. Verify both containers are healthy:
-
-```bash
-make ps
-```
-
-5. Inspect the database schemas:
-
-```bash
-make db-shell
-```
-
-Inside psql:
-
-```sql
-\dn
-\q
-```
-
-6. Build and run a service (Sprint 1+):
-
-```bash
-cd services/user-service
-mvn spring-boot:run
-```
-
-Flyway migrations run automatically on startup.
 
 ---
 
-## Usage
+## API Reference
 
-Once all services are running, the API is accessible through the API Gateway on port `8080`.
+All requests go through the gateway at `http://localhost:8080`.
+Import `docs/postman-collection.json` into Postman for the full collection.
 
-### API Documentation
+### Auth
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | /api/auth/register | None | Register new user |
+| POST | /api/auth/login | None | Login, returns JWT |
 
-Generated using SpringDoc OpenAPI, accessible via the gateway:
+### Users
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | /api/users/me | JWT | Get own profile |
+| GET | /api/admin/dashboard | JWT + ADMIN | Admin only route |
 
-- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-- **OpenAPI JSON**: `http://localhost:8080/v3/api-docs`
-
-### Key Endpoints
-
-| Method | Path                        | Description                     |
-|--------|-----------------------------|---------------------------------|
-| POST   | `/api/auth/register`        | Register a new citizen account  |
-| POST   | `/api/auth/login`           | Obtain a JWT access token       |
-| POST   | `/api/incidents`            | Report a new emergency          |
-| GET    | `/api/incidents/{id}`       | Get incident status and history |
-| GET    | `/api/responders`           | List available responders       |
-| WS     | `/ws/tracking/{incidentId}` | Live GPS tracking stream        |
+### Incidents
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | /api/incidents | JWT | Report emergency |
+| GET | /api/incidents/:id | JWT | Get incident by ID |
+| PATCH | /api/incidents/:id/status | JWT | Update status |
+| GET | /api/incidents/my | JWT | My incidents |
+| GET | /api/incidents/active?city= | JWT | Active by city |
 
 ---
 
-## Project Structure
+## Incident State Machine
 
 ```
-emergency-system/
-+-- docker-compose.yml
-+-- pom.xml                          (Maven parent - all versions locked here)
-+-- Makefile                         (make up / down / logs / db-shell)
-+-- .env.example
-|
-+-- services/
-|   +-- user-service/                (Auth, JWT        - Sprint 1)
-|   +-- emergency-service/           (Incidents CRUD   - Sprint 1)
-|   +-- dispatch-service/            (Kafka + routing  - Sprint 2)
-|   +-- tracking-service/            (WebSockets + GPS - Sprint 3)
-|   +-- notification-service/        (SMS via Twilio   - Sprint 2)
-|   +-- api-gateway/                 (Spring Cloud GW  - Sprint 1)
-|
-+-- ai-service/                      (FastAPI + ML     - Sprint 4)
-+-- frontend/                        (React 18         - Sprint 3)
-|
-+-- infrastructure/
-    +-- postgres/init.sql            (Schema creation)
-    +-- kafka/                       (Topic config     - Sprint 2)
-    +-- k8s/                         (K8s manifests    - Sprint 5)
+REPORTED --> QUEUED --> DISPATCHED --> IN_PROGRESS --> RESOLVED
+    |            |            |               |
+    +------------+------------+---------------+-> CANCELLED
+    |
+    +-> FAKE (AI detection - Sprint 4)
 ```
+
+Invalid transitions return **409 Conflict** with the exact error message.
+Every transition is recorded in `incident_status_history` (append-only audit log).
+
+---
+
+## System Design Concepts Demonstrated
+
+- **Microservices** — 6 independently deployable services
+- **API Gateway pattern** — single entry point, cross-cutting concerns (JWT) at edge
+- **Event-driven architecture** — Kafka integration (Sprint 2)
+- **State machine pattern** — enforced incident lifecycle
+- **Append-only audit log** — status history never updated, only inserted
+- **Schema-per-service** — database isolation without separate DB instances
+- **Stateless auth** — JWT, no server-side sessions
+- **Partial indexes** — optimized queries on filtered subsets
 
 ---
 
 ## Sprint Progress
 
-- [x] **Sprint 1** - Foundation: monorepo scaffold, Docker, Postgres + Redis, Flyway migrations, User Service, Emergency Service, API Gateway (Weeks 1-3)
-- [ ] **Sprint 2** - Kafka messaging, Dispatch Service, Notification Service (Weeks 4-6)
-- [ ] **Sprint 3** - WebSocket tracking, React frontend, live map with Leaflet (Weeks 7-9)
-- [ ] **Sprint 4** - AI/ML integration: priority scoring, fake detection, OSRM routing (Weeks 10-12)
-- [ ] **Sprint 5** - Kubernetes, observability, Gatling load tests, production hardening (Weeks 13-15)
+- [x] **Sprint 1** — Foundation, Auth, Emergency Service, API Gateway
+- [ ] **Sprint 2** — Kafka, Dispatch Service, Notifications
+- [ ] **Sprint 3** — React Frontend, WebSockets, Live Tracking
+- [ ] **Sprint 4** — AI Priority Scoring, Fake Detection
+- [ ] **Sprint 5** — Kubernetes, Load Testing, Production Deploy
 
 ---
 
-## Key Design Decisions
+## Author
 
-**Kafka over direct REST between services** - Emergency Service fires an event and does not care who processes it. Services scale independently and consumers can replay from offset if they crash.
-
-**One Postgres, separate schemas** - Simulates microservice database isolation on a dev machine without the overhead of multiple database instances. Production would use separate RDS instances per service.
-
-**JWT stored in memory, not localStorage** - XSS cannot steal in-memory tokens. A single line of caution that most candidates miss.
-
-**OSRM self-hosted routing** - Zero API cost, no rate limits, no dependency on paid third-party APIs. Shows operational thinking beyond calling Google Maps.
-
-**Append-only status history table** - Every incident state change writes a new row. Nothing is ever updated. This is the event-sourcing pattern and directly powers the live timeline UI.
-
----
-
-## Load Test Results
-
-> Gatling results to be added in Sprint 5.
-> Target: 500 concurrent users, p95 latency < 500ms.
-
----
-
-## Demo Video
-
-> Recorded in Sprint 3.
-
----
-
-## License
-
-This project is distributed under the MIT License. See `LICENSE` for more information.
-
----
-
-## Contact
-
-**Kshitij**
-
-- GitHub: [@Kshitij5486](https://github.com/Kshitij5486)
-
----
-
-*Built one day at a time.*
+Built by **Kshitij** as a portfolio project demonstrating distributed systems,
+microservices architecture, and AI integration.

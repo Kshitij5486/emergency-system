@@ -1,4 +1,4 @@
-﻿.env
+.env
 *.env.local
 target/
 *.class
@@ -13,3 +13,8 @@ dist/
 .vscode/
 .DS_Store
 *.log
+*.iws
+*.ipr
+.mvn/
+mvnw
+mvnw.cmd
