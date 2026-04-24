@@ -15,7 +15,14 @@ public interface ResponderRepository extends JpaRepository<Responder, UUID> {
     @Query(value = "SELECT * FROM dispatch.responders WHERE city = :city AND status = 'AVAILABLE'", nativeQuery = true)
     List<Responder> findAvailableByCity(String city);
 
+    @Query(value = "SELECT * FROM dispatch.responders WHERE city = :city", nativeQuery = true)
+    List<Responder> findAllByCity(String city);
+
     @Modifying
     @Query(value = "UPDATE dispatch.responders SET status = CAST(:status AS dispatch.responder_status), current_incident_id = :incidentId WHERE id = CAST(:id AS uuid)", nativeQuery = true)
     void updateStatusAndIncident(String id, String status, UUID incidentId);
+
+    @Modifying
+    @Query(value = "UPDATE dispatch.responders SET latitude = :latitude, longitude = :longitude, last_ping_at = NOW(), updated_at = NOW() WHERE id = :id", nativeQuery = true)
+    void updateLocation(UUID id, Double latitude, Double longitude);
 }
